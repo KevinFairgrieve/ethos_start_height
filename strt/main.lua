@@ -26,7 +26,7 @@ local function create()
     }
     
 end
-local scriptVersion = "1.6"
+local scriptVersion = "1.0.0"
 local hedline = {de="Starthoehe "..scriptVersion,
                  en ="Startheight "..scriptVersion}
 local waitForStart = {de= "Warte auf start",
@@ -68,9 +68,6 @@ local function paint(widget)
     local calcSteigrateActive = widget.SteigrateActive /100
     
     if HistoryMenu == 1 then
-        lcd.font(FONT_L_BOLD)        
-        lcd.drawText(lcdBorder, lcdBorder, headHistory[locale], LEFT)
-        lcd.font(FONT_BOLD)
         local filePath = widget.modelName.."-startheight.txt"
         local entries = {}
         menuSwitch = mainMenuL[locale]
@@ -90,19 +87,187 @@ local function paint(widget)
             print("Datei konnte nicht geöffnet werden:", filePath)
         end
 
-        -- Debug-Ausgabe der Einträge
-        if #entries == 0 then
-            lcd.font(FONT_L_BOLD)
-            print("Keine Daten vorhanden")
-            lcd.drawText(lcdBorder, text_h+5, "Keine Daten vorhanden", LEFT)
-        else
-            lcd.font(FONT_BOLD)
-            local y = text_h+5 -- Startposition für die Anzeige auf dem LCD
-            for _, entry in ipairs(entries) do
-                lcd.drawText(lcdBorder, y, entry, LEFT)
-                y = y + text_h + 1 -- Abstand zwischen den Zeilen
+
+        if w <= 256 and h <= 78 
+        then 
+            widgetSizeType = "3x3"
+            lcd.font(FONT_S_BOLD)        
+            lcd.drawText(lcdBorder, lcdBorder, headHistory[locale], LEFT)
+            lcd.font(FONT_S)
+            -- Debug-Ausgabe der Einträge
+            if #entries == 0 then
+                lcd.font(FONT_S_BOLD)
+                print("Keine Daten vorhanden")
+                lcd.drawText(lcdBorder, text_h+5, "Keine Daten vorhanden", LEFT)
+            else
+                lcd.font(FONT_S)
+                local y = text_h -- Startposition für die Anzeige auf dem LCD
+                for _, entry in ipairs(entries) do
+                    lcd.drawText(lcdBorder, y, entry, LEFT)
+                    y = y + text_h+1 -- Abstand zwischen den Zeilen
+                end
             end
+
+            
+        elseif w <= 256 and h <= 132 then 
+            widgetSizeType = "3x2"
+            lcd.font(FONT_S_BOLD)        
+            lcd.drawText(lcdBorder, lcdBorder, headHistory[locale], LEFT)
+            lcd.font(FONT_S)
+            -- Debug-Ausgabe der Einträge
+            if #entries == 0 then
+                lcd.font(FONT_S_BOLD)
+                print("Keine Daten vorhanden")
+                lcd.drawText(lcdBorder, text_h+5, "Keine Daten vorhanden", LEFT)
+            else
+                lcd.font(FONT_S)
+                local y = text_h -- Startposition für die Anzeige auf dem LCD
+                for _, entry in ipairs(entries) do
+                    lcd.drawText(lcdBorder, y, entry, LEFT)
+                    y = y + text_h+1 -- Abstand zwischen den Zeilen
+                end
+            end
+            
+        elseif w <= 256 and h <= 294 then 
+            widgetSizeType = "3x1"
+            lcd.font(FONT_S_BOLD)        
+            lcd.drawText(lcdBorder, lcdBorder, headHistory[locale], LEFT)
+            lcd.font(FONT_S)
+            -- Debug-Ausgabe der Einträge
+            if #entries == 0 then
+                lcd.font(FONT_S_BOLD)
+                print("Keine Daten vorhanden")
+                lcd.drawText(lcdBorder, text_h+5, "Keine Daten vorhanden", LEFT)
+            else
+                lcd.font(FONT_S)
+                local y = text_h -- Startposition für die Anzeige auf dem LCD
+                for _, entry in ipairs(entries) do
+                    lcd.drawText(lcdBorder, y, entry, LEFT)
+                    y = y + text_h+1 -- Abstand zwischen den Zeilen
+                end
+            end
+            
+        elseif w <= 388 and h <= 132 then 
+            widgetSizeType = "2x2"
+            lcd.font(FONT_L_BOLD)        
+            lcd.drawText(lcdBorder, lcdBorder, headHistory[locale], LEFT)
+            lcd.font(FONT_BOLD)-- Debug-Ausgabe der Einträge
+            if #entries == 0 then
+                lcd.font(FONT_L_BOLD)
+                print("Keine Daten vorhanden")
+                lcd.drawText(lcdBorder, text_h+5, "Keine Daten vorhanden", LEFT)
+            else
+                lcd.font(FONT_BOLD)
+                local y = text_h+5 -- Startposition für die Anzeige auf dem LCD
+                for _, entry in ipairs(entries) do
+                    lcd.drawText(lcdBorder, y, entry, LEFT)
+                    y = y + text_h + 1 -- Abstand zwischen den Zeilen
+                end
+            end
+            
+        elseif w <= 388 and h <= 294 then 
+            widgetSizeType = "2x1"
+            lcd.font(FONT_L_BOLD)        
+            lcd.drawText(lcdBorder, lcdBorder, headHistory[locale], LEFT)
+            lcd.font(FONT_BOLD)
+            -- Debug-Ausgabe der Einträge
+            if #entries == 0 then
+                lcd.font(FONT_L_BOLD)
+                print("Keine Daten vorhanden")
+                lcd.drawText(lcdBorder, text_h+5, "Keine Daten vorhanden", LEFT)
+            else
+                lcd.font(FONT_BOLD)
+                local y = text_h+5 -- Startposition für die Anzeige auf dem LCD
+                for _, entry in ipairs(entries) do
+                    lcd.drawText(lcdBorder, y, entry, LEFT)
+                    y = y + text_h + 1 -- Abstand zwischen den Zeilen
+                end
+            end
+            
+        elseif w <= 784 and h <= 132 then 
+            widgetSizeType = "1x2"
+            lcd.font(FONT_L_BOLD)        
+            lcd.drawText(lcdBorder, lcdBorder, headHistory[locale], LEFT)
+            lcd.font(FONT_BOLD)
+            -- Debug-Ausgabe der Einträge
+            if #entries == 0 then
+                lcd.font(FONT_L_BOLD)
+                print("Keine Daten vorhanden")
+                lcd.drawText(lcdBorder, text_h+5, "Keine Daten vorhanden", LEFT)
+            else
+                lcd.font(FONT_BOLD)
+                local y = text_h+5 -- Startposition für die Anzeige auf dem LCD
+                for _, entry in ipairs(entries) do
+                    lcd.drawText(lcdBorder, y, entry, LEFT)
+                    y = y + text_h + 1 -- Abstand zwischen den Zeilen
+                end
+            end
+            
+        elseif w <= 784 and h <= 294 then 
+            widgetSizeType = "1x1"
+            lcd.font(FONT_L_BOLD)        
+            lcd.drawText(lcdBorder, lcdBorder, headHistory[locale], LEFT)
+            lcd.font(FONT_BOLD)
+            
+
+            -- Debug-Ausgabe der Einträge
+            if #entries == 0 then
+                lcd.font(FONT_L_BOLD)
+                print("Keine Daten vorhanden")
+                lcd.drawText(lcdBorder, text_h+5, "Keine Daten vorhanden", LEFT)
+            else
+                lcd.font(FONT_BOLD)
+                local y = text_h+5 -- Startposition für die Anzeige auf dem LCD
+                for _, entry in ipairs(entries) do
+                    lcd.drawText(lcdBorder, y, entry, LEFT)
+                    y = y + text_h + 1 -- Abstand zwischen den Zeilen
+                end
+            end
+            
+        elseif w <= 800 and h <= 458 then 
+            widgetSizeType = "full"
+            lcd.font(FONT_L_BOLD)        
+            lcd.drawText(lcdBorder, lcdBorder, headHistory[locale], LEFT)
+            lcd.font(FONT_BOLD)
+            
+
+            -- Debug-Ausgabe der Einträge
+            if #entries == 0 then
+                lcd.font(FONT_L_BOLD)
+                print("Keine Daten vorhanden")
+                lcd.drawText(lcdBorder, text_h+5, "Keine Daten vorhanden", LEFT)
+            else
+                lcd.font(FONT_BOLD)
+                local y = text_h+5 -- Startposition für die Anzeige auf dem LCD
+                for _, entry in ipairs(entries) do
+                    lcd.drawText(lcdBorder, y, entry, LEFT)
+                    y = y + text_h + 1 -- Abstand zwischen den Zeilen
+                end
+            end
+            
+        else 
+            widgetSizeType = "Default"
+            lcd.font(FONT_L_BOLD)        
+            lcd.drawText(lcdBorder, lcdBorder, headHistory[locale], LEFT)
+            lcd.font(FONT_BOLD)
+            
+
+            -- Debug-Ausgabe der Einträge
+            if #entries == 0 then
+                lcd.font(FONT_L_BOLD)
+                print("Keine Daten vorhanden")
+                lcd.drawText(lcdBorder, text_h+5, "Keine Daten vorhanden", LEFT)
+            else
+                lcd.font(FONT_BOLD)
+                local y = text_h+5 -- Startposition für die Anzeige auf dem LCD
+                for _, entry in ipairs(entries) do
+                    lcd.drawText(lcdBorder, y, entry, LEFT)
+                    y = y + text_h + 1 -- Abstand zwischen den Zeilen
+                end
+            end
+            
         end
+        
     else
         menuSwitch = LastMenuL[locale]
         if w <= 256 and h <= 78 
@@ -206,19 +371,16 @@ local function paint(widget)
             end
         end
     end   
-        lcd.color(GREEN)
-        lcd.font(FONT_XS)
-        lcd.drawText(650, 100, "Debug1: "..(widget.debugValue1 or 0), LEFT)
-        lcd.drawText(650, 110, "Debug2: "..(widget.debugValue2 or 0), LEFT)
-        lcd.drawText(650, 120, "Debug3: "..(widget.debugValue3 or 0), LEFT)
-        lcd.drawText(650, 130, "Debug4: "..(widget.debugValue4 or 0), LEFT)
-        lcd.drawText(650, 140, "Debug5: "..(widget.debugValue5 or 0), LEFT)
-        lcd.drawText(650, 150, "Debug6: "..(widget.debugValue6 or 0), LEFT)
-        lcd.drawText(650, 160, "Debug7: "..(widget.debugValue7 or 0), LEFT) 
-        lcd.drawText(650, 170, "MenuSW: "..(widget.debugValue8 or "0"), LEFT) 
-    -- lcd.drawText(w/2, 20, "type: "..widgetSizeType, CENTERED)
-    -- lcd.drawText(lcdBorder, 10, "Breite:"..w, LEFT)
-    -- lcd.drawText(w-text_w-lcdBorder,10 , "Hoehe:"..h, RIGHT)    
+        -- lcd.color(GREEN)
+        -- lcd.font(FONT_XS)
+        -- lcd.drawText(650, 100, "Debug1: "..(widget.debugValue1 or 0), LEFT)
+        -- lcd.drawText(650, 110, "Debug2: "..(widget.debugValue2 or 0), LEFT)
+        -- lcd.drawText(650, 120, "Debug3: "..(widget.debugValue3 or 0), LEFT)
+        -- lcd.drawText(650, 130, "Debug4: "..(widget.debugValue4 or 0), LEFT)
+        -- lcd.drawText(650, 140, "Debug5: "..(widget.debugValue5 or 0), LEFT)
+        -- lcd.drawText(650, 150, "Debug6: "..(widget.debugValue6 or 0), LEFT)
+        -- lcd.drawText(650, 160, "Debug7: "..(widget.debugValue7 or 0), LEFT) 
+        -- lcd.drawText(650, 170, "MenuSW: "..(widget.debugValue8 or "0"), LEFT) 
 end
 
 local function wakeup(widget)
