@@ -15,7 +15,15 @@
 
 
 local function create()
-    return {value=nil}
+    return {
+        value=nil,
+        menuSw = nil, -- Initialize menuSw with a default switch
+        SteigrateActive = 50, -- Default value for SteigrateActive
+        SteigrateMin = 40, -- Default value for SteigrateMin
+        wHeightReset = nil, -- Initialize wHeightReset with a default switch
+        modelName = model.name();
+
+    }
     
 end
 local scriptVersion = "1.6"
@@ -39,6 +47,8 @@ local mainMenuL = {de = "Startseite",
                     en = "Main page"}
 local headHistory = {de = "Letzte Starts",
                     en = "Last starts"}
+local headHistoryPath = {de = "Historien Dateiname",
+                    en = "history filename"}
 local menuSwitch = "Default"
 local HistoryMenu = 0
 
@@ -61,7 +71,7 @@ local function paint(widget)
         lcd.font(FONT_L_BOLD)        
         lcd.drawText(lcdBorder, lcdBorder, headHistory[locale], LEFT)
         lcd.font(FONT_BOLD)
-        local filePath = "startheight.txt"
+        local filePath = widget.modelName.."-startheight.txt"
         local entries = {}
         menuSwitch = mainMenuL[locale]
 
@@ -205,6 +215,7 @@ local function paint(widget)
         lcd.drawText(650, 140, "Debug5: "..(widget.debugValue5 or 0), LEFT)
         lcd.drawText(650, 150, "Debug6: "..(widget.debugValue6 or 0), LEFT)
         lcd.drawText(650, 160, "Debug7: "..(widget.debugValue7 or 0), LEFT) 
+        lcd.drawText(650, 170, "MenuSW: "..(widget.debugValue8 or "0"), LEFT) 
     -- lcd.drawText(w/2, 20, "type: "..widgetSizeType, CENTERED)
     -- lcd.drawText(lcdBorder, 10, "Breite:"..w, LEFT)
     -- lcd.drawText(w-text_w-lcdBorder,10 , "Hoehe:"..h, RIGHT)    
@@ -218,6 +229,7 @@ local function wakeup(widget)
     local redSteigRate = nil
     local multipRedSteigRate = nil
     widget.valueReset = valueReset
+    -- print("Modellname: " .. widget.modelName)
 
     -- Überprüfen, ob sensorSteigrate gültig ist
     valueSteigrateString = sensorSteigrate and sensorSteigrate:stringValue() or nil
@@ -246,104 +258,129 @@ local function wakeup(widget)
         end
     end
     -- print("ResetValue: " .. widget.wHeightReset:stringValue())
-    if widget.wHeightReset:stringValue() == "100" then
-        -- print("reset")
-        if widget.valueWurfhoehe ~= nil then
-            print("widget.valueWurfhoehe: " .. widget.valueWurfhoehe)
-        else
-            print("widget.valueWurfhoehe ist nil")
-        end
-        if widget.valueWurfhoehe ~= "0" and widget.valueWurfhoehe ~= 0 and widget.valueWurfhoehe ~= nil then 
-            local filePath = "startheight.txt"
-            local entries = {}
-
-            -- Datei öffnen
-            local file = io.open(filePath, "r")
-            if file then
-                while true do
-                    local success, line = pcall(function() return file:read("L") end) -- Liest eine Zeile
-                    if not success or not line then
-                        break -- Beende die Schleife, wenn ein Fehler auftritt oder das Ende der Datei erreicht ist
-                    end
-                    line = string.gsub(line, "\r?\n", "") -- Entfernt Zeilenumbrüche
-                    if string.match(line, "%S") then -- Nur nicht-leere Zeilen hinzufügen
-                        table.insert(entries, line)
-                    end
-                end
-                file:close()
+    if widget.wHeightReset ~= nil and widget.wHeightReset:stringValue() ~= nil then
+        
+        if widget.wHeightReset:stringValue() == "100" then
+            -- print("reset")
+            if widget.valueWurfhoehe ~= nil then
+                print("widget.valueWurfhoehe: " .. widget.valueWurfhoehe)
             else
-                print("Datei konnte nicht geöffnet werden:", filePath)
+                print("widget.valueWurfhoehe ist nil")
             end
+            if widget.valueWurfhoehe ~= "0" and widget.valueWurfhoehe ~= 0 and widget.valueWurfhoehe ~= nil then 
+                local filePath = widget.modelName.."-startheight.txt"
+                local entries = {}
 
-            -- Debug-Ausgabe der Einträge
-            if #entries == 0 then
-                print("Keine Daten vorhanden")
-            else
-                for _, entry in ipairs(entries) do
-                    print(entry)
-                end
-            end
-
-            -- Neuen Eintrag hinzufügen
-            local timestamp = os.date("%d-%m-%Y %H:%M:%S")
-            if widget.valueWurfhoehe and widget.valueWurfhoehe ~= "" then
-                local cleanedValue = string.gsub(widget.valueWurfhoehe, "m", "") -- Entfernt die Einheit "m"
-                local valueWithoutUnit = tonumber(cleanedValue) -- Konvertiert den bereinigten String in eine Zahl
-                if valueWithoutUnit then
-                    local newEntry = string.format("%s - %.2f m", timestamp, valueWithoutUnit)
-                    
-                    -- Überprüfen, ob der Eintrag leer ist
-                    if string.match(newEntry, "%S") then -- %S prüft, ob der String nicht nur aus Leerzeichen besteht
-                        table.insert(entries, newEntry)
-                    else
-                        print("Leerer Eintrag wird nicht hinzugefügt.")
-                    end
-                else
-                    print("Ungültiger Wert für widget.valueWurfhoehe:", widget.valueWurfhoehe)
-                end
-            else
-                print("widget.valueWurfhoehe ist nil oder leer")
-            end
-            -- Nur die letzten 10 Einträge behalten
-            while #entries > 10 do
-                table.remove(entries, 1)
-            end
-
-            -- Datei überschreiben
-            file = io.open(filePath, "w")
-            if file then
-                for index, entry in ipairs(entries) do
-                    if string.match(entry, "%S") then -- Überprüfen, ob die Zeile nicht leer ist
-                        file:write(entry) -- Schreibe den Eintrag
-                        if index < #entries then
-                            file:write("\n") -- Füge nur zwischen den Einträgen einen Zeilenumbruch hinzu
+                -- Datei öffnen
+                local file = io.open(filePath, "r")
+                if file then
+                    while true do
+                        local success, line = pcall(function() return file:read("L") end) -- Liest eine Zeile
+                        if not success or not line then
+                            break -- Beende die Schleife, wenn ein Fehler auftritt oder das Ende der Datei erreicht ist
+                        end
+                        line = string.gsub(line, "\r?\n", "") -- Entfernt Zeilenumbrüche
+                        if string.match(line, "%S") then -- Nur nicht-leere Zeilen hinzufügen
+                            table.insert(entries, line)
                         end
                     end
+                    file:close()
+                else
+                    print("Datei konnte nicht geöffnet werden:", filePath)
                 end
-                file:close()
-            else
-                print("Fehler beim Schreiben der Datei:", filePath)
+
+                -- Debug-Ausgabe der Einträge
+                if #entries == 0 then
+                    print("Keine Daten vorhanden")
+                else
+                    for _, entry in ipairs(entries) do
+                        print(entry)
+                    end
+                end
+
+                -- Neuen Eintrag hinzufügen
+                local timestamp = os.date("%d-%m-%Y %H:%M:%S")
+                if widget.valueWurfhoehe and widget.valueWurfhoehe ~= "" then
+                    local cleanedValue = string.gsub(widget.valueWurfhoehe, "m", "") -- Entfernt die Einheit "m"
+                    local valueWithoutUnit = tonumber(cleanedValue) -- Konvertiert den bereinigten String in eine Zahl
+                    if valueWithoutUnit then
+                        local newEntry = string.format("%s - %.2f m", timestamp, valueWithoutUnit)
+                        
+                        -- Überprüfen, ob der Eintrag leer ist
+                        if string.match(newEntry, "%S") then -- %S prüft, ob der String nicht nur aus Leerzeichen besteht
+                            table.insert(entries, newEntry)
+                        else
+                            print("Leerer Eintrag wird nicht hinzugefügt.")
+                        end
+                    else
+                        print("Ungültiger Wert für widget.valueWurfhoehe:", widget.valueWurfhoehe)
+                    end
+                else
+                    print("widget.valueWurfhoehe ist nil oder leer")
+                end
+                -- Nur die letzten 10 Einträge behalten
+                while #entries > 10 do
+                    table.remove(entries, 1)
+                end
+
+                -- Datei überschreiben
+                file = io.open(filePath, "w")
+                if file then
+                    for index, entry in ipairs(entries) do
+                        if string.match(entry, "%S") then -- Überprüfen, ob die Zeile nicht leer ist
+                            file:write(entry) -- Schreibe den Eintrag
+                            if index < #entries then
+                                file:write("\n") -- Füge nur zwischen den Einträgen einen Zeilenumbruch hinzu
+                            end
+                        end
+                    end
+                    file:close()
+                else
+                    print("Fehler beim Schreiben der Datei:", filePath)
+                end
+                widget.valueWurfhoehe = 0
+                valueReset = 1
+                start = 0
             end
-            widget.valueWurfhoehe = 0
-            valueReset = 1
-            start = 0
-        end
+            
         
-    
+        end
     end
     if widget.value ~= valueFlughoheString then
         widget.value = valueFlughoheString
         widget.valueReset = valueReset
         lcd.invalidate()
     end
+    
 
-widget.debugValue1 = multipRedSteigRate
-widget.debugValue2 = widget.SteigrateActive
-widget.debugValue3 = start
-widget.debugValue4 = widget.valueReset
-widget.debugValue5 = highestPoint
-widget.debugValue6 = widget.SteigrateMin
-widget.debugValue7 = widget.valueWurfhoehe
+    if widget.menuSw ~= nil and widget.menuSw:stringValue() ~= nil then
+        if widget.menuSw:stringValue() == "100" then
+            menuSWlastValue = widget.menuSw:stringValue()
+            print("MenuSW lastValue 100: " .. menuSWlastValue)
+        end
+        if (widget.menuSw:stringValue() == "-100" or widget.menuSw:stringValue() == "0") and menuSWlastValue == "100" then
+            print("MenuSW unterschied lastValue: " .. menuSWlastValue)
+            if HistoryMenu == 0 then
+                HistoryMenu = 1
+            elseif HistoryMenu == 1 then
+                HistoryMenu = 0
+            end
+            menuSWlastValue = widget.menuSw:stringValue()
+            lcd.invalidate()
+        end
+    end
+    
+
+
+
+    -- Debug-Ausgaben
+    widget.debugValue1 = multipRedSteigRate
+    widget.debugValue2 = widget.SteigrateActive
+    widget.debugValue3 = start
+    widget.debugValue4 = widget.valueReset
+    widget.debugValue5 = highestPoint
+    widget.debugValue6 = widget.SteigrateMin
+    widget.debugValue7 = widget.valueWurfhoehe
 
 
 
@@ -411,17 +448,41 @@ local function configure(widget)
     line = form.addLine(configResetSwitch[locale])
     form.addSwitchField(line, form.getFieldSlots(line)[0], function() return widget.wHeightReset end, function(value) widget.wHeightReset = value end)
     -- Menu Schalter
-  --  line = form.addLine(configMenuSwitch[locale])
-   -- form.addSwitchField(line, form.getFieldSlots(line)[0], function() return widget.menuSw end, function(value) widget.menuSw = value end)
+    line = form.addLine(configMenuSwitch[locale])
+    form.addSwitchField(line, form.getFieldSlots(line)[0], function() return widget.menuSw end, function(value) widget.menuSw = value end)
+    -- History Dateiname
+    lineHistoryPath = form.addLine(headHistoryPath[locale]) form.addStaticText(lineHistoryPath, nil, widget.modelName.."-startheight.txt")
     -- Version
     lineVersion = form.addLine("Script Version") form.addStaticText(lineVersion, nil, scriptVersion)
 end
 
 local function read(widget)
+    -- if storage.read("SteigrateActive") ~= nil then
+    --     widget.SteigrateActive = storage.read("SteigrateActive")
+    -- else
+    --     widget.SteigrateActive = 60
+    -- end
+    -- if storage.read("wHeightReset") ~= nil then
+    --     widget.wHeightReset = storage.read("wHeightReset")
+    -- else
+    --     widget.wHeightReset = nil
+    -- end
+    -- if storage.read("SteigrateMin") ~= nil then
+    --     widget.SteigrateMin = storage.read("SteigrateMin")
+    -- else
+    --     widget.SteigrateMin = 40
+    -- end
+    -- if storage.read("MenuSW") ~= nil then
+    --     widget.menuSw = storage.read("MenuSW")
+    -- else
+    --     widget.menuSw = nil
+    -- end
+
     widget.SteigrateActive = storage.read("SteigrateActive")
-    widget.wHeightReset = storage.read("wHeightReset")
     widget.SteigrateMin = storage.read("SteigrateMin")
-    --widget.menuSw = storage.read("MenuSw")
+    widget.wHeightReset = storage.read("wHeightReset")
+    widget.menuSw = storage.read("MenuSw")
+
     
 end
 
@@ -429,6 +490,7 @@ local function write(widget)
     storage.write("SteigrateActive", widget.SteigrateActive)
     storage.write("wHeightReset", widget.wHeightReset)
     storage.write("SteigrateMin", widget.SteigrateMin)
+    storage.write("MenuSw", widget.menuSw) -- Save menuSw to storage
     --storage.write("MenuSw", widget.menuSw)
 end
 
