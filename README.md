@@ -33,15 +33,15 @@ Here are some example views of the widget:
 
 ### Main Screen
 The main screen displays the current start height.  
-![Main Screen](resources/widget1.png)
+![Main Screen](resources/widget1.PNG)
 
 ### History View
 The history view shows the last 10 recorded start heights.  
-![History View](resources/widget_historie.png)
+![History View](resources/widget_history.PNG)
 
 ### Configuration Menu
 The configuration menu allows you to set all important parameters.  
-![Configuration Menu](resources/widget_config.png)
+![Configuration Menu](resources/widget_config.PNG)
 
 ---
 
