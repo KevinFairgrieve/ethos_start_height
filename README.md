@@ -51,9 +51,10 @@ The configuration menu allows you to set all important parameters.
    Clone or download this repository to get the widget files.
 
 2. **Upload**  
-   Copy the Lua widget file (`*.lua`) and additional resources (e.g., images) to your Ethos radio.
+   Copy the Lua widget folder (`strt`) to your Ethos radio.
+   The widget name is `Startheight/Starthoehe versionnumber`
 
-3. **Configure**  
+4. **Configure**  
    Use the Ethos widget configuration menu to:
    - Set the maximum climb rate.
    - Assign a reset switch.
