@@ -18,15 +18,15 @@ local function create()
     return {
         value=nil,
         menuSw = nil, -- Initialize menuSw with a default switch
-        SteigrateActive = 50, -- Default value for SteigrateActive
-        SteigrateMin = 40, -- Default value for SteigrateMin
+        SteigrateActive = 800, -- Default value for SteigrateActive
+        SteigrateMin = 100, -- Default value for SteigrateMin
         wHeightReset = nil, -- Initialize wHeightReset with a default switch
         modelName = model.name();
 
     }
     
 end
-local scriptVersion = "1.0.0"
+local scriptVersion = "1.0.1"
 local hedline = {de="Starthoehe "..scriptVersion,
                  en ="Startheight "..scriptVersion}
 local waitForStart = {de= "Warte auf start",
@@ -37,9 +37,9 @@ local configStgR = {de = "Steigrate für Starterkennung",
                     en = "climb rate for start detection"}
 local configStgRmin = {de = "Steigrate höchster Punkt",
                        en = "climb rate highest point"}
-local configResetSwitch = {de = "Schalter für Startreset",
+local configResetSwitch = {de = "SW für Startreset",
                            en = "switch for start reset"}
-local configMenuSwitch = {de = "Schalter zum oeffnen der letzten Fluege",
+local configMenuSwitch = {de = "SW für Flughistorie",
                            en = "switch to open last flights"}
 local LastMenuL = {de = "Letzte Fluege anzeigen",
                            en = "Open last flights"}
@@ -391,6 +391,10 @@ local function wakeup(widget)
     local redSteigRate = nil
     local multipRedSteigRate = nil
     widget.valueReset = valueReset
+    -- widget.SteigrateActive = SteigrateActive
+    -- widget.SteigrateMin = SteigrateMin
+    -- widget.wHeightReset = wHeightReset
+    -- widget.menuSw = menuSw 
     -- print("Modellname: " .. widget.modelName)
 
     -- Überprüfen, ob sensorSteigrate gültig ist
@@ -398,7 +402,7 @@ local function wakeup(widget)
     valueFlughoheString = sensorFlughoehe and sensorFlughoehe:stringValue() or nil
 
     -- Sicherstellen, dass valueSteigrateString gültig ist
-    if valueSteigrateString and valueSteigrateString ~= "" then
+    if valueSteigrateString and valueSteigrateString ~= "" and valueSteigrateString ~= nil then
         redSteigRate = tonumber((string.gsub(valueSteigrateString, "m/s", "")))
     else
         redSteigRate = 0 -- Standardwert, falls die Umwandlung fehlschlägt
@@ -420,7 +424,7 @@ local function wakeup(widget)
         end
     end
     -- print("ResetValue: " .. widget.wHeightReset:stringValue())
-    if widget.wHeightReset ~= nil and widget.wHeightReset:stringValue() ~= nil then
+    if widget.wHeightReset ~= nil and type(widget.wHeightReset) == "userdata" and widget.wHeightReset:stringValue() ~= nil then
         
         if widget.wHeightReset:stringValue() == "100" then
             -- print("reset")
@@ -535,14 +539,14 @@ local function wakeup(widget)
 
 
 
-    -- Debug-Ausgaben
-    widget.debugValue1 = multipRedSteigRate
-    widget.debugValue2 = widget.SteigrateActive
-    widget.debugValue3 = start
-    widget.debugValue4 = widget.valueReset
-    widget.debugValue5 = highestPoint
-    widget.debugValue6 = widget.SteigrateMin
-    widget.debugValue7 = widget.valueWurfhoehe
+    -- -- Debug-Ausgaben
+    -- widget.debugValue1 = multipRedSteigRate
+    -- widget.debugValue2 = widget.SteigrateActive
+    -- widget.debugValue3 = start
+    -- widget.debugValue4 = widget.valueReset
+    -- widget.debugValue5 = highestPoint
+    -- widget.debugValue6 = widget.SteigrateMin
+    -- widget.debugValue7 = widget.valueWurfhoehe
 
 
 
@@ -619,41 +623,18 @@ local function configure(widget)
 end
 
 local function read(widget)
-    -- if storage.read("SteigrateActive") ~= nil then
-    --     widget.SteigrateActive = storage.read("SteigrateActive")
-    -- else
-    --     widget.SteigrateActive = 60
-    -- end
-    -- if storage.read("wHeightReset") ~= nil then
-    --     widget.wHeightReset = storage.read("wHeightReset")
-    -- else
-    --     widget.wHeightReset = nil
-    -- end
-    -- if storage.read("SteigrateMin") ~= nil then
-    --     widget.SteigrateMin = storage.read("SteigrateMin")
-    -- else
-    --     widget.SteigrateMin = 40
-    -- end
-    -- if storage.read("MenuSW") ~= nil then
-    --     widget.menuSw = storage.read("MenuSW")
-    -- else
-    --     widget.menuSw = nil
-    -- end
 
-    widget.SteigrateActive = storage.read("SteigrateActive")
-    widget.SteigrateMin = storage.read("SteigrateMin")
-    widget.wHeightReset = storage.read("wHeightReset")
-    widget.menuSw = storage.read("MenuSw")
-
-    
+    widget.SteigrateActive = storage.read("A")
+    widget.SteigrateMin = storage.read("B")
+    widget.wHeightReset = storage.read("C") 
+    widget.menuSw = storage.read("D") 
 end
 
 local function write(widget)
-    storage.write("SteigrateActive", widget.SteigrateActive)
-    storage.write("wHeightReset", widget.wHeightReset)
-    storage.write("SteigrateMin", widget.SteigrateMin)
-    storage.write("MenuSw", widget.menuSw) -- Save menuSw to storage
-    --storage.write("MenuSw", widget.menuSw)
+    storage.write("A", widget.SteigrateActive)
+    storage.write("B", widget.SteigrateMin)
+    storage.write("C", widget.wHeightReset)
+    storage.write("D", widget.menuSw) 
 end
 
 
