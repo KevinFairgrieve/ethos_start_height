@@ -13,53 +13,79 @@
 -- full 800x458
 --
 
+local locales = require("includes.locales") -- Importiere die Sprachvariablen
 
-local function create()
-    return {
-        value=nil,
-        menuSw = nil, -- Initialize menuSw with a default switch
-        SteigrateActive = 800, -- Default value for SteigrateActive
-        SteigrateMin = 100, -- Default value for SteigrateMin
-        wHeightReset = nil, -- Initialize wHeightReset with a default switch
-        modelName = model.name();
+local scriptVersion = "1.1.0"
+local supportedLocales = {"de", "en"} -- Liste der unterstützten Sprachen
 
-    }
-    
-end
-local scriptVersion = "1.0.1"
-local hedline = {de="Starthoehe "..scriptVersion,
-                 en ="Startheight "..scriptVersion}
-local waitForStart = {de= "Warte auf start",
-                      en= "wait for Start"}
-local menuL = {de = "Starthoehe zuruecksetzen",
-               en = "reset Startheight"}
-local configStgR = {de = "Steigrate für Starterkennung",
-                    en = "climb rate for start detection"}
-local configStgRmin = {de = "Steigrate höchster Punkt",
-                       en = "climb rate highest point"}
-local configResetSwitch = {de = "SW für Startreset",
-                           en = "switch for start reset"}
-local configMenuSwitch = {de = "SW für Flughistorie",
-                           en = "switch to open last flights"}
-local LastMenuL = {de = "Letzte Fluege anzeigen",
-                           en = "Open last flights"}
-local mainMenuL = {de = "Startseite",
-                    en = "Main page"}
-local headHistory = {de = "Letzte Starts",
-                    en = "Last starts"}
-local headHistoryPath = {de = "Historien Dateiname",
-                    en = "history filename"}
+local hedline = locales.hedline
+local waitForStart = locales.waitForStart
+local menuL = locales.menuL
+local configStgR = locales.configStgR
+local configStgRmin = locales.configStgRmin
+local configResetSwitch = locales.configResetSwitch
+local configMenuSwitch = locales.configMenuSwitch
+local LastMenuL = locales.LastMenuL
+local mainMenuL = locales.mainMenuL
+local headHistory = locales.headHistory
+local headHistoryPath = locales.headHistoryPath
+local needSup = locales.needSup
+local helpWindow = locales.helpWindow
+local help1 = locales.help1
+local help2 = locales.help2
+local help3 = locales.help3
+local help4 = locales.help4
 local menuSwitch = "Default"
 local HistoryMenu = 0
 
 
+
+local function create()
+    return {
+        value=nil,
+        menuSw = nil, 
+        SteigrateActive = 800, 
+        SteigrateMin = 200, 
+        wHeightReset = nil, 
+        modelName = model.name();
+        
+
+    }
+    
+end
+
+local function isLocaleSupported(locale, locales)
+    for _, value in ipairs(locales) do
+        if value == locale then
+            return true
+        end
+    end
+    return false
+end
+-- Überprüfen, ob locale unterstützt wird
+if not isLocaleSupported(locale, supportedLocales) then
+    locale = "en" -- Fallback auf "en", wenn locale nicht unterstützt wird
+end
+
+
+
+
+
 local function name(widget)
     locale = system.getLocale()
+    -- Prüfen, ob locale unterstützt wird
+    if not isLocaleSupported(locale, supportedLocales) then
+        locale = "en" -- Fallback auf "en"
+    end
     return hedline[locale]
 end
 
 local function paint(widget)
     local w, h = lcd.getWindowSize()
+
+
+
+
     -- Widget größe bestimmen und anpassen
     local lcdBorder = 2
     local text_w, text_h = lcd.getTextSize("")
@@ -584,6 +610,15 @@ local function menu(widget)
 end
 
 local function event(widget, category, value, x, y)
+    if widget.showHelpWindow then
+        -- Überprüfen, ob der Schließen-Button geklickt wurde
+        local w, h = lcd.getWindowSize()
+        if x >= w - 60 and x <= w - 10 and y >= h - 30 and y <= h - 10 then
+            widget.showHelpWindow = false -- Hilfefenster schließen
+            lcd.invalidate() -- Bildschirm aktualisieren
+            return true
+        end
+    end
     print("Event received:", category, value, x, y)
     if category == EVT_KEY and value == KEY_ENTER_LONG then
         print("Board " .. system.getVersion().board .. " Version " .. system.getVersion().version)
@@ -596,6 +631,18 @@ local function event(widget, category, value, x, y)
     end
 end
 
+local function showHelp()
+    form.clear() -- Löscht das aktuelle Formular
+    form.addLine("Hilfe") -- Überschrift
+    form.addStaticText(nil, nil, "Beschreibung der Einstellungen:") -- Beschreibung
+    form.addStaticText(nil, nil, "1. Steigrate für Starterkennung: ...")
+    form.addStaticText(nil, nil, "2. Steigrate höchster Punkt: ...")
+    form.addStaticText(nil, nil, "3. Reset-Schalter: ...")
+    form.addStaticText(nil, nil, "4. Menü-Schalter: ...")
+    form.addButton("Schließen", function()
+        form.rebuild() -- Kehrt zur Hauptkonfiguration zurück
+    end)
+end
 
 local function configure(widget)
     -- Steigraten erkennung
@@ -620,6 +667,32 @@ local function configure(widget)
     lineHistoryPath = form.addLine(headHistoryPath[locale]) form.addStaticText(lineHistoryPath, nil, widget.modelName.."-startheight.txt")
     -- Version
     lineVersion = form.addLine("Script Version") form.addStaticText(lineVersion, nil, scriptVersion)
+    
+      -- Hilfe-Button
+    -- lineHelp = form.addLine("Hilfe") 
+    -- form.addButton(lineHelp, nil, {text = "Hilfe", paint = function() end, press = function() widget.showHelpWindow = true lcd.invalidate() end})
+    lineHelp = form.addLine(needSup[locale]) form.addButton(lineHelp, nil, {text = helpWindow[locale], paint = function() end, press = function() 
+        local buttons = {
+            {label="OK", action=function() return true end},
+            -- {label="Cancel", action=function() return true end},
+            -- {label="Nothing", action=function() return false end},
+          }
+          local dialog = form.openDialog({
+              title=helpWindow[locale], 
+              message=help1[locale]..help2[locale]..help3[locale]..help4[locale].."\n\n\n\n",
+              width=500,
+              buttons=buttons,
+              options=TEXT_LEFT,
+              wakeup=function()
+                -- print("dialog wakeup ...") 
+              end,
+              paint=function()
+                -- lcd.drawText(10, 20, help1[locale], LEFT)
+                -- lcd.drawText(10, 40, help2[locale], LEFT) 
+              end
+          })    
+    end})
+    
 end
 
 local function read(widget)
