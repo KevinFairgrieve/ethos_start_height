@@ -15,7 +15,7 @@
 
 local locales = require("includes.locales") -- Importiere die Sprachvariablen
 
-local scriptVersion = "1.1.2"
+local scriptVersion = "1.1.3"
 local supportedLocales = {"de", "en"} -- Liste der unterstützten Sprachen
 
 local hedline = locales.hedline

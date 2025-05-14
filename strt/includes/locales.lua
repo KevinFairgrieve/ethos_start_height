@@ -1,8 +1,8 @@
 local locales = {}
 
 locales.hedline = {
-    de = "Starthoehe 1.1.0",
-    en = "Startheight 1.1.0"
+    de = "Starthoehe",
+    en = "Startheight"
 }
 
 locales.waitForStart = {
