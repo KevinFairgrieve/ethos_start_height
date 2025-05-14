@@ -458,11 +458,11 @@ local function wakeup(widget)
         
         if widget.wHeightReset:stringValue() == "100" then
             -- print("reset")
-            if widget.valueWurfhoehe ~= nil then
-                print("widget.valueWurfhoehe: " .. widget.valueWurfhoehe)
-            else
-                print("widget.valueWurfhoehe ist nil")
-            end
+            -- if widget.valueWurfhoehe ~= nil then
+            --     print("widget.valueWurfhoehe: " .. widget.valueWurfhoehe)
+            -- else
+            --     print("widget.valueWurfhoehe ist nil")
+            -- end
             if widget.valueWurfhoehe ~= "0" and widget.valueWurfhoehe ~= 0 and widget.valueWurfhoehe ~= nil then 
                 local filePath = widget.modelName.."-startheight.txt"
                 local entries = {}
@@ -552,10 +552,10 @@ local function wakeup(widget)
     if widget.menuSw ~= nil and widget.menuSw:stringValue() ~= nil then
         if widget.menuSw:stringValue() == "100" then
             menuSWlastValue = widget.menuSw:stringValue()
-            print("MenuSW lastValue 100: " .. menuSWlastValue)
+            -- print("MenuSW lastValue 100: " .. menuSWlastValue)
         end
         if (widget.menuSw:stringValue() == "-100" or widget.menuSw:stringValue() == "0") and menuSWlastValue == "100" then
-            print("MenuSW unterschied lastValue: " .. menuSWlastValue)
+            -- print("MenuSW unterschied lastValue: " .. menuSWlastValue)
             if HistoryMenu == 0 then
                 HistoryMenu = 1
             elseif HistoryMenu == 1 then

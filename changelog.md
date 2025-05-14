@@ -1,3 +1,6 @@
+# 1.1.2
+- removed debug messages to not stress the serial port. 
+
 # 1.1.1
 - changed entry order in History view. 
     last entry will now be displayed on top
