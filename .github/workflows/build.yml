@@ -27,7 +27,8 @@ jobs:
         tag_name: ${{ github.ref }}
         release_name: Release ${{ github.ref }}
         body: |
-          Automatisch erstellte Release für Tag ${{ github.ref }}
+            ## Ethos Start Height
+            **Full Changelog**: https://github.com/Peschi90/ethos_start_height/blob/${{ github.ref }}/changelog.md
         draft: false
         prerelease: false
 
