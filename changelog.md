@@ -1,3 +1,6 @@
+# 1.1.3
+- bugfix, version number was displayed wrong
+
 # 1.1.2
 - removed debug messages to not stress the serial port. 
 
