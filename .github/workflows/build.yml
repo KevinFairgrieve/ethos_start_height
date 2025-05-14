@@ -5,6 +5,9 @@ on:
     tags:
     - 'v*' # Trigger für Tags, die mit 'v' beginnen
 
+permissions:
+  contents: write
+
 jobs:
   createrelease:
     name: Create Release
