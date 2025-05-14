@@ -15,7 +15,7 @@
 
 local locales = require("includes.locales") -- Importiere die Sprachvariablen
 
-local scriptVersion = "1.1.0"
+local scriptVersion = "1.1.1"
 local supportedLocales = {"de", "en"} -- Liste der unterstützten Sprachen
 
 local hedline = locales.hedline
@@ -66,11 +66,6 @@ end
 if not isLocaleSupported(locale, supportedLocales) then
     locale = "en" -- Fallback auf "en", wenn locale nicht unterstützt wird
 end
-
-
-
-
-
 local function name(widget)
     locale = system.getLocale()
     -- Prüfen, ob locale unterstützt wird
@@ -78,6 +73,14 @@ local function name(widget)
         locale = "en" -- Fallback auf "en"
     end
     return hedline[locale]
+end
+
+local function reverseTable(tbl)
+    local reversed = {}
+    for i = #tbl, 1, -1 do
+        table.insert(reversed, tbl[i])
+    end
+    return reversed
 end
 
 local function paint(widget)
@@ -112,7 +115,8 @@ local function paint(widget)
         else
             print("Datei konnte nicht geöffnet werden:", filePath)
         end
-
+        -- Einträge umkehren, damit der letzte zuerst angezeigt wird
+        entries = reverseTable(entries)
 
         if w <= 256 and h <= 78 
         then 
@@ -610,15 +614,6 @@ local function menu(widget)
 end
 
 local function event(widget, category, value, x, y)
-    if widget.showHelpWindow then
-        -- Überprüfen, ob der Schließen-Button geklickt wurde
-        local w, h = lcd.getWindowSize()
-        if x >= w - 60 and x <= w - 10 and y >= h - 30 and y <= h - 10 then
-            widget.showHelpWindow = false -- Hilfefenster schließen
-            lcd.invalidate() -- Bildschirm aktualisieren
-            return true
-        end
-    end
     print("Event received:", category, value, x, y)
     if category == EVT_KEY and value == KEY_ENTER_LONG then
         print("Board " .. system.getVersion().board .. " Version " .. system.getVersion().version)
@@ -629,19 +624,6 @@ local function event(widget, category, value, x, y)
     else
         return false
     end
-end
-
-local function showHelp()
-    form.clear() -- Löscht das aktuelle Formular
-    form.addLine("Hilfe") -- Überschrift
-    form.addStaticText(nil, nil, "Beschreibung der Einstellungen:") -- Beschreibung
-    form.addStaticText(nil, nil, "1. Steigrate für Starterkennung: ...")
-    form.addStaticText(nil, nil, "2. Steigrate höchster Punkt: ...")
-    form.addStaticText(nil, nil, "3. Reset-Schalter: ...")
-    form.addStaticText(nil, nil, "4. Menü-Schalter: ...")
-    form.addButton("Schließen", function()
-        form.rebuild() -- Kehrt zur Hauptkonfiguration zurück
-    end)
 end
 
 local function configure(widget)
@@ -668,29 +650,22 @@ local function configure(widget)
     -- Version
     lineVersion = form.addLine("Script Version") form.addStaticText(lineVersion, nil, scriptVersion)
     
-      -- Hilfe-Button
-    -- lineHelp = form.addLine("Hilfe") 
-    -- form.addButton(lineHelp, nil, {text = "Hilfe", paint = function() end, press = function() widget.showHelpWindow = true lcd.invalidate() end})
+    -- Hilfe-Button
     lineHelp = form.addLine(needSup[locale]) form.addButton(lineHelp, nil, {text = helpWindow[locale], paint = function() end, press = function() 
         local buttons = {
             {label="OK", action=function() return true end},
-            -- {label="Cancel", action=function() return true end},
-            -- {label="Nothing", action=function() return false end},
-          }
-          local dialog = form.openDialog({
-              title=helpWindow[locale], 
-              message=help1[locale]..help2[locale]..help3[locale]..help4[locale].."\n\n\n\n",
-              width=500,
-              buttons=buttons,
-              options=TEXT_LEFT,
-              wakeup=function()
-                -- print("dialog wakeup ...") 
-              end,
-              paint=function()
-                -- lcd.drawText(10, 20, help1[locale], LEFT)
-                -- lcd.drawText(10, 40, help2[locale], LEFT) 
-              end
-          })    
+        }
+        local dialog = form.openDialog({
+            title=helpWindow[locale], 
+            message=help1[locale]..help2[locale]..help3[locale]..help4[locale].."\n\n\n\n",
+            width=500,
+            buttons=buttons,
+            options=TEXT_LEFT,
+            wakeup=function()
+            end,
+            paint=function()
+            end
+        })    
     end})
     
 end
@@ -709,9 +684,6 @@ local function write(widget)
     storage.write("C", widget.wHeightReset)
     storage.write("D", widget.menuSw) 
 end
-
-
-
 
 local function init()
     system.registerWidget({key="STRT", name=name, create=create, paint=paint, event=event, menu=menu, wakeup=wakeup, configure=configure, read=read, write=write})
