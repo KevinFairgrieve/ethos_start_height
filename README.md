@@ -33,7 +33,7 @@ Here are some example views of the widget:
 
 ### Main Screen
 The main screen displays the current start height.  
-![Main Screen](resources/widget1.PNG)
+![Main Screen](resources/widget_with_history_5.PNG)
 
 ### History View
 The history view shows the last 10 recorded start heights.  
