@@ -32,7 +32,8 @@
 Here are some example views of the widget:
 
 ### Main Screen
-The main screen displays the current start height.  
+The main screen displays the current start height.
+You can use all widget sizes, the design change depending on size. Just the 3x3 has no splitview
 ![Main Screen](resources/widget_with_history_5.PNG)
 
 ### History View
