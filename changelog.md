@@ -1,3 +1,7 @@
+# 1.2.0
+- adds splitscreen view of thrown height and history to almost all widget sizes. just 3x3 is to small.
+    - last flight page still exists
+
 # 1.1.3
 - bugfix, version number was displayed wrong
 

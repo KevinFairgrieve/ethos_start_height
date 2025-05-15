@@ -15,7 +15,7 @@
 
 local locales = require("includes.locales") -- Importiere die Sprachvariablen
 
-local scriptVersion = "1.1.3"
+local scriptVersion = "1.2.0" -- Version des Skripts
 local supportedLocales = {"de", "en"} -- Liste der unterstützten Sprachen
 
 local hedline = locales.hedline
@@ -95,28 +95,30 @@ local function paint(widget)
     local widgetSizeType = nil
     local calcSteigrateMin = widget.SteigrateMin /100
     local calcSteigrateActive = widget.SteigrateActive /100
-    
+    local filePath = widget.modelName.."-startheight.txt"
+    local entries = {}
+    -- Datei öffnen
+    local file = io.open(filePath, "r")
+    if file then
+        while true do
+            local success, line = pcall(function() return file:read("L") end) -- Liest eine Zeile
+            if not success or not line then
+                break -- Beende die Schleife, wenn ein Fehler auftritt oder das Ende der Datei erreicht ist
+            end
+            table.insert(entries, line) -- Zeile zur Liste hinzufügen
+        end
+        file:close()
+    else
+        print("Datei konnte nicht geöffnet werden:", filePath)
+    end
+    -- Einträge umkehren, damit der letzte zuerst angezeigt wird
+    entries = reverseTable(entries)
+
     if HistoryMenu == 1 then
-        local filePath = widget.modelName.."-startheight.txt"
-        local entries = {}
+        
         menuSwitch = mainMenuL[locale]
 
-        -- Datei öffnen
-        local file = io.open(filePath, "r")
-        if file then
-            while true do
-                local success, line = pcall(function() return file:read("L") end) -- Liest eine Zeile
-                if not success or not line then
-                    break -- Beende die Schleife, wenn ein Fehler auftritt oder das Ende der Datei erreicht ist
-                end
-                table.insert(entries, line) -- Zeile zur Liste hinzufügen
-            end
-            file:close()
-        else
-            print("Datei konnte nicht geöffnet werden:", filePath)
-        end
-        -- Einträge umkehren, damit der letzte zuerst angezeigt wird
-        entries = reverseTable(entries)
+        
 
         if w <= 256 and h <= 78 
         then 
@@ -300,104 +302,265 @@ local function paint(widget)
         
     else
         menuSwitch = LastMenuL[locale]
-        if w <= 256 and h <= 78 
-        then 
+        -- 3x3
+        if w <= 256 and h <= 78 then 
             widgetSizeType = "3x3"
             lcd.font(FONT_XS)        
-            lcd.drawText(lcdBorder, h-text_h-2, "Min:"..calcSteigrateMin.."m/s", LEFT)
-            lcd.drawText(w-text_w-lcdBorder, h-text_h-2, "Active:"..calcSteigrateActive.."m/s", RIGHT)
+            lcd.drawText(lcdBorder, h-text_h/2-2, "Min:"..calcSteigrateMin.."m/s", LEFT)
+            lcd.drawText(w-text_w-lcdBorder, h-text_h/2-2, "Active:"..calcSteigrateActive.."m/s", RIGHT)
             lcd.font(FONT_XL) 
             if widget.valueWurfhoehe ~= nil and widget.valueWurfhoehe ~= 0 and widget.valueWurfhoehe ~= "0" then
                 lcd.drawText(w/2, h/2-text_h, widget.valueWurfhoehe, CENTERED)
             else
                 lcd.drawText(w/2, h/2-text_h, waitForStart[locale], CENTERED)
             end
+        -- 3x2
         elseif w <= 256 and h <= 132 then 
             widgetSizeType = "3x2"
-            lcd.font(FONT_XS)        
-            lcd.drawText(lcdBorder, h-text_h-2, "Min:"..calcSteigrateMin.."m/s", LEFT)
-            lcd.drawText(w-text_w-lcdBorder, h-text_h-2, "Active:"..calcSteigrateActive.."m/s", RIGHT)
-            lcd.font(FONT_XL) 
+            lcd.font(FONT_XXS)        
+            lcd.drawText(lcdBorder, h/2-text_h/2, "Min:"..calcSteigrateMin.."m/s", LEFT)
+            lcd.drawText(w-text_w-lcdBorder, h/2-text_h/2, "Active:"..calcSteigrateActive.."m/s", RIGHT)
+            lcd.font(FONT_BOLD) 
             if widget.valueWurfhoehe ~= nil and widget.valueWurfhoehe ~= 0 and widget.valueWurfhoehe ~= "0" then
-                lcd.drawText(w/2, h/2-text_h, widget.valueWurfhoehe, CENTERED)
+                lcd.drawText(w/2, h/4/2+text_h/2-15, widget.valueWurfhoehe, CENTERED)
             else
-                lcd.drawText(w/2, h/2-text_h, waitForStart[locale], CENTERED)
+                lcd.drawText(w/2, h/4/2+text_h/2-15, waitForStart[locale], CENTERED)
             end
+            lcd.drawLine(4, h/2-1, w-4, h/2-1)
+            lcd.drawLine(4, h/2, w-4, h/2)
+            lcd.drawLine(4, h/2+1, w-4, h/2+1)
+            -- lcd.font(FONT_S)        
+            -- lcd.drawText(w/2, h/2+5, headHistory[locale], CENTERED)
+            if #entries == 0 then
+                lcd.font(FONT_XS)
+                print("Keine Daten vorhanden")
+                lcd.drawText(w/2, h/2+text_h/2, "Keine Daten vorhanden", CENTERED)
+            else
+                lcd.font(FONT_XS)
+                local y = h/2+2-- Startposition für die Anzeige auf dem LCD
+                for _, entry in ipairs(entries) do
+                    if y >= h-text_h+2 then
+                        return -- Beende die Schleife, wenn der Bildschirm voll ist
+                    end
+                    lcd.drawText(w/2, y, entry, CENTERED)
+                    y = y + text_h/2+1 -- Abstand zwischen den Zeilen
+                end
+            end
+        -- 3x1
         elseif w <= 256 and h <= 294 then 
             widgetSizeType = "3x1"
             lcd.font(FONT_XS)        
-            lcd.drawText(lcdBorder, h-text_h-2, "Min:"..calcSteigrateMin.."m/s", LEFT)
-            lcd.drawText(w-text_w-lcdBorder, h-text_h-2, "Active:"..calcSteigrateActive.."m/s", RIGHT)
-            lcd.font(FONT_XL) 
+            lcd.drawText(lcdBorder, h/2-text_h/2-2, "Min:"..calcSteigrateMin.."m/s", LEFT)
+            lcd.drawText(w-text_w-lcdBorder, h/2-text_h/2-2, "Active:"..calcSteigrateActive.."m/s", RIGHT)
+            lcd.font(FONT_L_BOLD) 
             if widget.valueWurfhoehe ~= nil and widget.valueWurfhoehe ~= 0 and widget.valueWurfhoehe ~= "0" then
-                lcd.drawText(w/2, h/2-text_h, widget.valueWurfhoehe, CENTERED)
+                lcd.drawText(w/2, h/4/2+text_h/2, widget.valueWurfhoehe, CENTERED)
             else
-                lcd.drawText(w/2, h/2-text_h, waitForStart[locale], CENTERED)
+                lcd.drawText(w/2, h/4/2+text_h/2, waitForStart[locale], CENTERED)
             end
+            lcd.drawLine(4, h/2-1, w-4, h/2-1)
+            lcd.drawLine(4, h/2, w-4, h/2)
+            lcd.drawLine(4, h/2+1, w-4, h/2+1)
+            -- lcd.font(FONT_S_BOLD)        
+            -- lcd.drawText(w/2, h/2+5, headHistory[locale], CENTERED)
+            if #entries == 0 then
+                lcd.font(FONT_S)
+                print("Keine Daten vorhanden")
+                lcd.drawText(w/2, h/2+text_h/2, "Keine Daten vorhanden", CENTERED)
+            else
+                lcd.font(FONT_S)
+                local y = h/2+2 -- Startposition für die Anzeige auf dem LCD
+                for _, entry in ipairs(entries) do
+                    if y >= h-text_h+2 then
+                        return -- Beende die Schleife, wenn der Bildschirm voll ist
+                    end
+                    lcd.drawText(w/2, y, entry, CENTERED)
+                    y = y + text_h/2+1 -- Abstand zwischen den Zeilen
+                end
+            end
+        -- 2x2
         elseif w <= 388 and h <= 132 then 
             widgetSizeType = "2x2"
-            lcd.font(FONT_XS)        
-            lcd.drawText(lcdBorder, h-text_h-2, "Min:"..calcSteigrateMin.."m/s", LEFT)
-            lcd.drawText(w-text_w-lcdBorder, h-text_h-2, "Active:"..calcSteigrateActive.."m/s", RIGHT)
-            lcd.font(FONT_XL) 
+            lcd.font(FONT_XXS)        
+            lcd.drawText(lcdBorder, h-text_h/2-3, "Min:"..calcSteigrateMin.."m/s", LEFT)
+            lcd.drawText(w/2-text_w-lcdBorder, h-text_h/2-3, "Active:"..calcSteigrateActive.."m/s", RIGHT)
+            lcd.font(FONT_L) 
             if widget.valueWurfhoehe ~= nil and widget.valueWurfhoehe ~= 0 and widget.valueWurfhoehe ~= "0" then
-                lcd.drawText(w/2, h/2-text_h, widget.valueWurfhoehe, CENTERED)
+                lcd.drawText(w/4, h/2-text_h, widget.valueWurfhoehe, CENTERED)
             else
-                lcd.drawText(w/2, h/2-text_h, waitForStart[locale], CENTERED)
+                lcd.drawText(w/4, h/2-text_h, waitForStart[locale], CENTERED)
             end
+            lcd.drawLine(w/2-1, 4, w/2-1, h-4)
+            lcd.drawLine(w/2, 4, w/2, h-4)
+            lcd.drawLine(w/2+1, 4, w/2+1, h-4)
+            -- lcd.font(FONT_S)        
+            -- lcd.drawText(w/2+10, 5, headHistory[locale], LEFT)
+            if #entries == 0 then
+                lcd.font(FONT_XS)
+                print("Keine Daten vorhanden")
+                lcd.drawText(w/2+10, text_h/2, "Keine Daten vorhanden", LEFT)
+            else
+                lcd.font(FONT_XS)
+                local y = text_h/2 -- Startposition für die Anzeige auf dem LCD
+                for _, entry in ipairs(entries) do
+                    if y >= h-text_h+2 then
+                        return -- Beende die Schleife, wenn der Bildschirm voll ist
+                    end
+                    lcd.drawText(w/2+10, y, entry, LEFT)
+                    y = y + text_h/2+2 -- Abstand zwischen den Zeilen
+                end
+            end
+        -- 2x1
         elseif w <= 388 and h <= 294 then 
             widgetSizeType = "2x1"
             lcd.font(FONT_XS)        
-            lcd.drawText(lcdBorder, h-text_h-2, "Min:"..calcSteigrateMin.."m/s", LEFT)
-            lcd.drawText(w-text_w-lcdBorder, h-text_h-2, "Active:"..calcSteigrateActive.."m/s", RIGHT)
-            lcd.font(FONT_XL) 
+            lcd.drawText(lcdBorder, h/2-text_h/2-2, "Min:"..calcSteigrateMin.."m/s", LEFT)
+            lcd.drawText(w-text_w-lcdBorder, h/2-text_h/2-2, "Active:"..calcSteigrateActive.."m/s", RIGHT)
+            lcd.font(FONT_XXL) 
             if widget.valueWurfhoehe ~= nil and widget.valueWurfhoehe ~= 0 and widget.valueWurfhoehe ~= "0" then
-                lcd.drawText(w/2, h/2-text_h, widget.valueWurfhoehe, CENTERED)
+                lcd.drawText(w/2, h/4/2+text_h/2, widget.valueWurfhoehe, CENTERED)
             else
-                lcd.drawText(w/2, h/2-text_h, waitForStart[locale], CENTERED)
+                lcd.drawText(w/2, h/4/2+text_h/2, waitForStart[locale], CENTERED)
             end
+            lcd.drawLine(4, h/2-1, w-4, h/2-1)
+            lcd.drawLine(4, h/2, w-4, h/2)
+            lcd.drawLine(4, h/2+1, w-4, h/2+1)
+            -- lcd.font(FONT_S_BOLD)        
+            -- lcd.drawText(w/2, h/2+5, headHistory[locale], CENTERED)
+            if #entries == 0 then
+                lcd.font(FONT_S)
+                -- print("Keine Daten vorhanden")
+                lcd.drawText(w/2, h/2+text_h/2, "Keine Daten vorhanden", CENTERED)
+            else
+                lcd.font(FONT_S)
+                local y = h/2+2 -- Startposition für die Anzeige auf dem LCD
+                for _, entry in ipairs(entries) do
+                    if y >= h-text_h+2 then
+                        return -- Beende die Schleife, wenn der Bildschirm voll ist
+                    end
+                    lcd.drawText(w/2, y, entry, CENTERED)
+                    y = y + text_h/2+2 -- Abstand zwischen den Zeilen
+                end
+            end
+        -- 1x2
         elseif w <= 784 and h <= 132 then 
             widgetSizeType = "1x2"
             lcd.font(FONT_XS)        
-            lcd.drawText(lcdBorder, h-text_h-2, "Min:"..calcSteigrateMin.."m/s", LEFT)
-            lcd.drawText(w-text_w-lcdBorder, h-text_h-2, "Active:"..calcSteigrateActive.."m/s", RIGHT)
-            lcd.font(FONT_XL) 
+            lcd.drawText(lcdBorder, h-text_h/2-2, "Min:"..calcSteigrateMin.."m/s", LEFT)
+            lcd.drawText(w/2-text_w-lcdBorder, h-text_h/2-2, "Active:"..calcSteigrateActive.."m/s", RIGHT)
+            lcd.font(FONT_XXL) 
             if widget.valueWurfhoehe ~= nil and widget.valueWurfhoehe ~= 0 and widget.valueWurfhoehe ~= "0" then
-                lcd.drawText(w/2, h/2-text_h, widget.valueWurfhoehe, CENTERED)
+                lcd.drawText(w/4, h/2-text_h, widget.valueWurfhoehe, CENTERED)
             else
-                lcd.drawText(w/2, h/2-text_h, waitForStart[locale], CENTERED)
+                lcd.drawText(w/4, h/2-text_h, waitForStart[locale], CENTERED)
             end
+            lcd.drawLine(w/2-1, 4, w/2-1, h-4)
+            lcd.drawLine(w/2, 4, w/2, h-4)
+            lcd.drawLine(w/2+1, 4, w/2+1, h-4)
+            -- lcd.font(FONT_BOLD)        
+            -- lcd.drawText(w/2+10, 5, headHistory[locale], LEFT)
+            if #entries == 0 then
+                lcd.font(FONT_STD)
+                print("Keine Daten vorhanden")
+                lcd.drawText(w/2+10, text_h/2+2, "Keine Daten vorhanden", LEFT)
+            else
+                lcd.font(FONT_STD)
+                local y = text_h/2 -- Startposition für die Anzeige auf dem LCD
+                for _, entry in ipairs(entries) do
+                    if y >= h-text_h+2 then
+                        return -- Beende die Schleife, wenn der Bildschirm voll ist
+                    end
+                    lcd.drawText(w/2+10, y, entry, LEFT)
+                    y = y + text_h/2+6 -- Abstand zwischen den Zeilen
+                end
+            end
+        -- 1x1
         elseif w <= 784 and h <= 294 then 
             widgetSizeType = "1x1"
             lcd.font(FONT_XS)        
-            lcd.drawText(lcdBorder, h-text_h-2, "Min:"..calcSteigrateMin.."m/s", LEFT)
-            lcd.drawText(w-text_w-lcdBorder, h-text_h-2, "Active:"..calcSteigrateActive.."m/s", RIGHT)
-            lcd.font(FONT_XL) 
+            lcd.drawText(lcdBorder, h-text_h/2-2, "Min:"..calcSteigrateMin.."m/s", LEFT)
+            lcd.drawText(w/2-text_w-lcdBorder, h-text_h/2-2, "Active:"..calcSteigrateActive.."m/s", RIGHT)
+            lcd.font(FONT_XXL) 
             if widget.valueWurfhoehe ~= nil and widget.valueWurfhoehe ~= 0 and widget.valueWurfhoehe ~= "0" then
-                lcd.drawText(w/2, h/2-text_h, widget.valueWurfhoehe, CENTERED)
+                lcd.drawText(w/4, h/2-text_h, widget.valueWurfhoehe, CENTERED)
             else
-                lcd.drawText(w/2, h/2-text_h, waitForStart[locale], CENTERED)
+                lcd.drawText(w/4, h/2-text_h, waitForStart[locale], CENTERED)
             end
+            lcd.drawLine(w/2-1, 4, w/2-1, h-4)
+            lcd.drawLine(w/2, 4, w/2, h-4)
+            lcd.drawLine(w/2+1, 4, w/2+1, h-4)
+            -- lcd.font(FONT_L_BOLD)        
+            -- lcd.drawText(w/2+10, 10, headHistory[locale], LEFT)
+            if #entries == 0 then
+                lcd.font(FONT_STD)
+                print("Keine Daten vorhanden")
+                lcd.drawText(w/2+10, text_h/2+2, "Keine Daten vorhanden", LEFT)
+            else
+                lcd.font(FONT_STD)
+                local y = text_h/2 -- Startposition für die Anzeige auf dem LCD
+                for _, entry in ipairs(entries) do
+                    lcd.drawText(w/2+10, y, entry, LEFT)
+                    y = y + text_h/2+10 -- Abstand zwischen den Zeilen
+                end
+            end
+        -- full
         elseif w <= 800 and h <= 458 then 
             widgetSizeType = "full"
             lcd.font(FONT_XS)        
-            lcd.drawText(lcdBorder, h-text_h-2, "Min:"..calcSteigrateMin.."m/s", LEFT)
-            lcd.drawText(w-text_w-lcdBorder, h-text_h-2, "Active:"..calcSteigrateActive.."m/s", RIGHT)
-            lcd.font(FONT_XL) 
+            lcd.drawText(lcdBorder, h-text_h/2-2, "Min:"..calcSteigrateMin.."m/s", LEFT)
+            lcd.drawText(w/2-text_w-lcdBorder, h-text_h/2-2, "Active:"..calcSteigrateActive.."m/s", RIGHT)
+            lcd.font(FONT_XXL) 
             if widget.valueWurfhoehe ~= nil and widget.valueWurfhoehe ~= 0 and widget.valueWurfhoehe ~= "0" then
-                lcd.drawText(w/2, h/2-text_h, widget.valueWurfhoehe, CENTERED)
+                lcd.drawText(w/4, h/2-text_h, widget.valueWurfhoehe, CENTERED)
             else
-                lcd.drawText(w/2, h/2-text_h, waitForStart[locale], CENTERED)
+                lcd.drawText(w/4, h/2-text_h, waitForStart[locale], CENTERED)
             end
-        else widgetSizeType = "Default"
-            lcd.font(FONT_XS)        
-            lcd.drawText(lcdBorder, h-text_h-2, "Min:"..calcSteigrateMin.."m/s", LEFT)
-            lcd.drawText(w-text_w-lcdBorder, h-text_h-2, "Active:"..calcSteigrateActive.."m/s", RIGHT)
-            lcd.font(FONT_XL) 
-            if widget.valueWurfhoehe ~= nil and widget.valueWurfhoehe ~= 0 and widget.valueWurfhoehe ~= "0" then
-                lcd.drawText(w/2, h/2-text_h, widget.valueWurfhoehe, CENTERED)
+            lcd.drawLine(w/2-1, 4, w/2-1, h-4)
+            lcd.drawLine(w/2, 4, w/2, h-4)
+            lcd.drawLine(w/2+1, 4, w/2+1, h-4)
+            -- lcd.font(FONT_L_BOLD)        
+            -- lcd.drawText(w/2+10, 10, headHistory[locale], LEFT)
+            if #entries == 0 then
+                lcd.font(FONT_STD)
+                print("Keine Daten vorhanden")
+                lcd.drawText(w/2+10, text_h/2+2, "Keine Daten vorhanden", LEFT)
             else
-                lcd.drawText(w/2, h/2-text_h, waitForStart[locale], CENTERED)
+                lcd.font(FONT_STD)
+                local y = text_h/2 -- Startposition für die Anzeige auf dem LCD
+                for _, entry in ipairs(entries) do
+                    lcd.drawText(w/2+10, y, entry, LEFT)
+                    y = y + text_h/2+10 -- Abstand zwischen den Zeilen
+                end
+            end
+        -- Default
+        else 
+            widgetSizeType = "Default"      
+            lcd.font(FONT_XS)        
+            lcd.font(FONT_XS)        
+            lcd.drawText(lcdBorder, h-text_h/2-2, "Min:"..calcSteigrateMin.."m/s", LEFT)
+            lcd.drawText(w/2-text_w-lcdBorder, h-text_h/2-2, "Active:"..calcSteigrateActive.."m/s", RIGHT)
+            lcd.font(FONT_XXL) 
+            if widget.valueWurfhoehe ~= nil and widget.valueWurfhoehe ~= 0 and widget.valueWurfhoehe ~= "0" then
+                lcd.drawText(w/4, h/2-text_h, widget.valueWurfhoehe, CENTERED)
+            else
+                lcd.drawText(w/4, h/2-text_h, waitForStart[locale], CENTERED)
+            end
+            lcd.drawLine(w/2-1, 4, w/2-1, h-4)
+            lcd.drawLine(w/2, 4, w/2, h-4)
+            lcd.drawLine(w/2+1, 4, w/2+1, h-4)
+            -- lcd.font(FONT_L_BOLD)        
+            -- lcd.drawText(w/2+10, 10, headHistory[locale], LEFT)
+            if #entries == 0 then
+                lcd.font(FONT_STD)
+                print("Keine Daten vorhanden")
+                lcd.drawText(w/2+10, text_h/2+2, "Keine Daten vorhanden", LEFT)
+            else
+                lcd.font(FONT_STD)
+                local y = text_h/2 -- Startposition für die Anzeige auf dem LCD
+                for _, entry in ipairs(entries) do
+                    lcd.drawText(w/2+10, y, entry, LEFT)
+                    y = y + text_h/2+10 -- Abstand zwischen den Zeilen
+                end
             end
         end
     end   
@@ -495,12 +658,12 @@ local function wakeup(widget)
                 end
 
                 -- Neuen Eintrag hinzufügen
-                local timestamp = os.date("%d-%m-%Y %H:%M:%S")
+                local timestamp = os.date("%d.%m.%y %H:%M:%S")
                 if widget.valueWurfhoehe and widget.valueWurfhoehe ~= "" then
                     local cleanedValue = string.gsub(widget.valueWurfhoehe, "m", "") -- Entfernt die Einheit "m"
                     local valueWithoutUnit = tonumber(cleanedValue) -- Konvertiert den bereinigten String in eine Zahl
                     if valueWithoutUnit then
-                        local newEntry = string.format("%s - %.2f m", timestamp, valueWithoutUnit)
+                        local newEntry = string.format("%s - %.2fm", timestamp, valueWithoutUnit)
                         
                         -- Überprüfen, ob der Eintrag leer ist
                         if string.match(newEntry, "%S") then -- %S prüft, ob der String nicht nur aus Leerzeichen besteht

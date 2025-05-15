@@ -37,17 +37,17 @@ locales.configMenuSwitch = {
 
 locales.LastMenuL = {
     de = "Letzte Fluege anzeigen",
-    en = "Open last flights"
+    en = "open last flights"
 }
 
 locales.mainMenuL = {
     de = "Startseite",
-    en = "Main page"
+    en = "main page"
 }
 
 locales.headHistory = {
     de = "Letzte Starts",
-    en = "Last starts"
+    en = "last starts"
 }
 
 locales.headHistoryPath = {
