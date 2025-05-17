@@ -34,6 +34,10 @@ locales.configMenuSwitch = {
     de = "4. SW für Flughistorie",
     en = "4. switch to open last flights"
 }
+locales.configPlayValue = {
+    de = "5. Wert ausgeben",
+    en = "5. call value"
+}
 
 locales.LastMenuL = {
     de = "Letzte Fluege anzeigen",
@@ -83,6 +87,11 @@ locales.help3 = {
 locales.help4 = {
     de = "\n\n4. Menü-Schalter:\nSchalter um die Historie der letzten\nFlüge anzuzeigen. \nDer Schalter muss auf \"ein\" stehen!",
     en = "\n\n4. Menu switch:\nSwitch to display the history of the last flights.\nThe switch must be set to \"on\"!"
+}
+
+locales.help5 = {
+    de = "\n\n5. Wert ausgeben:\nWenn aktiviert, wird der Wert des höchsten\nPunktes angesagt.",
+    en = "\n\n5. Call value:\nIf activated, the value of the highest point\nis called out."
 }
 
 return locales

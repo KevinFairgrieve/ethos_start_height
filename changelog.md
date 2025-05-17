@@ -1,3 +1,6 @@
+# 1.3.0
+- adds possibility to let you play the value aftter height detection
+
 # 1.2.0
 - adds splitscreen view of thrown height and history to almost all widget sizes. just 3x3 is to small.
     - last flight page still exists

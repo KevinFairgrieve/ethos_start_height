@@ -15,7 +15,7 @@
 
 local locales = require("includes.locales") -- Importiere die Sprachvariablen
 
-local scriptVersion = "1.2.0" -- Version des Skripts
+local scriptVersion = "1.3.0" -- Version des Skripts
 local supportedLocales = {"de", "en"} -- Liste der unterstützten Sprachen
 
 local hedline = locales.hedline
@@ -25,6 +25,7 @@ local configStgR = locales.configStgR
 local configStgRmin = locales.configStgRmin
 local configResetSwitch = locales.configResetSwitch
 local configMenuSwitch = locales.configMenuSwitch
+local configPlayValue = locales.configPlayValue
 local LastMenuL = locales.LastMenuL
 local mainMenuL = locales.mainMenuL
 local headHistory = locales.headHistory
@@ -35,8 +36,10 @@ local help1 = locales.help1
 local help2 = locales.help2
 local help3 = locales.help3
 local help4 = locales.help4
+local help5 = locales.help5
 local menuSwitch = "Default"
 local HistoryMenu = 0
+local soundPlayed = 0
 
 
 
@@ -85,10 +88,6 @@ end
 
 local function paint(widget)
     local w, h = lcd.getWindowSize()
-
-
-
-
     -- Widget größe bestimmen und anpassen
     local lcdBorder = 2
     local text_w, text_h = lcd.getTextSize("")
@@ -564,16 +563,6 @@ local function paint(widget)
             end
         end
     end   
-        -- lcd.color(GREEN)
-        -- lcd.font(FONT_XS)
-        -- lcd.drawText(650, 100, "Debug1: "..(widget.debugValue1 or 0), LEFT)
-        -- lcd.drawText(650, 110, "Debug2: "..(widget.debugValue2 or 0), LEFT)
-        -- lcd.drawText(650, 120, "Debug3: "..(widget.debugValue3 or 0), LEFT)
-        -- lcd.drawText(650, 130, "Debug4: "..(widget.debugValue4 or 0), LEFT)
-        -- lcd.drawText(650, 140, "Debug5: "..(widget.debugValue5 or 0), LEFT)
-        -- lcd.drawText(650, 150, "Debug6: "..(widget.debugValue6 or 0), LEFT)
-        -- lcd.drawText(650, 160, "Debug7: "..(widget.debugValue7 or 0), LEFT) 
-        -- lcd.drawText(650, 170, "MenuSW: "..(widget.debugValue8 or "0"), LEFT) 
 end
 
 local function wakeup(widget)
@@ -584,11 +573,6 @@ local function wakeup(widget)
     local redSteigRate = nil
     local multipRedSteigRate = nil
     widget.valueReset = valueReset
-    -- widget.SteigrateActive = SteigrateActive
-    -- widget.SteigrateMin = SteigrateMin
-    -- widget.wHeightReset = wHeightReset
-    -- widget.menuSw = menuSw 
-    -- print("Modellname: " .. widget.modelName)
 
     -- Überprüfen, ob sensorSteigrate gültig ist
     valueSteigrateString = sensorSteigrate and sensorSteigrate:stringValue() or nil
@@ -612,6 +596,14 @@ local function wakeup(widget)
                 start = 0
                 widget.valueReset = valueReset
                 highestPoint = multipRedSteigRate
+                if widget.playValue == true and soundPlayed == 0 then
+                    wurfHoehe = tonumber((string.gsub(widget.valueWurfhoehe, "m", "")))
+                    print("Wurfhoehe without multipl: " .. wurfHoehe)
+                    -- wurfHoehe = wurfHoehe * 100
+                    -- print("Wurfhoehe: " .. wurfHoehe)
+                    system.playNumber(wurfHoehe,UNIT_METER,2)
+                    soundPlayed = 1
+                end
                 
             end
         end
@@ -620,12 +612,6 @@ local function wakeup(widget)
     if widget.wHeightReset ~= nil and type(widget.wHeightReset) == "userdata" and widget.wHeightReset:stringValue() ~= nil then
         
         if widget.wHeightReset:stringValue() == "100" then
-            -- print("reset")
-            -- if widget.valueWurfhoehe ~= nil then
-            --     print("widget.valueWurfhoehe: " .. widget.valueWurfhoehe)
-            -- else
-            --     print("widget.valueWurfhoehe ist nil")
-            -- end
             if widget.valueWurfhoehe ~= "0" and widget.valueWurfhoehe ~= 0 and widget.valueWurfhoehe ~= nil then 
                 local filePath = widget.modelName.."-startheight.txt"
                 local entries = {}
@@ -700,9 +686,9 @@ local function wakeup(widget)
                 widget.valueWurfhoehe = 0
                 valueReset = 1
                 start = 0
+                soundPlayed = 0
             end
-            
-        
+                   
         end
     end
     if widget.value ~= valueFlughoheString then
@@ -729,20 +715,6 @@ local function wakeup(widget)
         end
     end
     
-
-
-
-    -- -- Debug-Ausgaben
-    -- widget.debugValue1 = multipRedSteigRate
-    -- widget.debugValue2 = widget.SteigrateActive
-    -- widget.debugValue3 = start
-    -- widget.debugValue4 = widget.valueReset
-    -- widget.debugValue5 = highestPoint
-    -- widget.debugValue6 = widget.SteigrateMin
-    -- widget.debugValue7 = widget.valueWurfhoehe
-
-
-
 end
 
 -- Menu Aneige bei touch Bedienung
@@ -808,7 +780,10 @@ local function configure(widget)
     -- Menu Schalter
     line = form.addLine(configMenuSwitch[locale])
     form.addSwitchField(line, form.getFieldSlots(line)[0], function() return widget.menuSw end, function(value) widget.menuSw = value end)
-    -- History Dateiname
+    -- Play Value after detection
+    line = form.addLine(configPlayValue[locale])
+    form.addBooleanField(line, nil, function() return widget.playValue end, function(newValue) widget.playValue = newValue end)
+     -- History Dateiname
     lineHistoryPath = form.addLine(headHistoryPath[locale]) form.addStaticText(lineHistoryPath, nil, widget.modelName.."-startheight.txt")
     -- Version
     lineVersion = form.addLine("Script Version") form.addStaticText(lineVersion, nil, scriptVersion)
@@ -820,7 +795,7 @@ local function configure(widget)
         }
         local dialog = form.openDialog({
             title=helpWindow[locale], 
-            message=help1[locale]..help2[locale]..help3[locale]..help4[locale].."\n\n\n\n",
+            message=help1[locale]..help2[locale]..help3[locale]..help4[locale]..help5[locale].."\n\n\n\n",
             width=500,
             buttons=buttons,
             options=TEXT_LEFT,
@@ -839,6 +814,7 @@ local function read(widget)
     widget.SteigrateMin = storage.read("B")
     widget.wHeightReset = storage.read("C") 
     widget.menuSw = storage.read("D") 
+    widget.playValue = storage.read("E")
 end
 
 local function write(widget)
@@ -846,6 +822,7 @@ local function write(widget)
     storage.write("B", widget.SteigrateMin)
     storage.write("C", widget.wHeightReset)
     storage.write("D", widget.menuSw) 
+    storage.write("E", widget.playValue)
 end
 
 local function init()
