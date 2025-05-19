@@ -15,7 +15,7 @@
 
 local locales = require("includes.locales") -- Importiere die Sprachvariablen
 
-local scriptVersion = "1.3.0" -- Version des Skripts
+local scriptVersion = "1.4.0" -- Version des Skripts
 local supportedLocales = {"de", "en"} -- Liste der unterstützten Sprachen
 
 local hedline = locales.hedline
@@ -37,6 +37,8 @@ local help2 = locales.help2
 local help3 = locales.help3
 local help4 = locales.help4
 local help5 = locales.help5
+local ignoreHeight = locales.ignoreHeight
+local delLast = locales.delLast
 local menuSwitch = "Default"
 local HistoryMenu = 0
 local soundPlayed = 0
@@ -51,8 +53,6 @@ local function create()
         SteigrateMin = 200, 
         wHeightReset = nil, 
         modelName = model.name();
-        
-
     }
     
 end
@@ -69,6 +69,51 @@ end
 if not isLocaleSupported(locale, supportedLocales) then
     locale = "en" -- Fallback auf "en", wenn locale nicht unterstützt wird
 end
+
+local function deleteLastLine(filePathDelete)
+    -- Datei öffnen und alle Zeilen lesen
+    local lines = {}
+    local file, err = io.open(filePathDelete, "r")
+    if not file then
+        print("Datei konnte nicht geöffnet werden:", err)
+        return
+    end
+
+    -- Datei Zeile für Zeile lesen
+    while true do
+        local success, line = pcall(function() return file:read("*l") end) -- Liest eine Zeile ohne Zeilenumbruch
+        if not success or not line then
+            break -- Beende die Schleife, wenn ein Fehler auftritt oder das Ende der Datei erreicht ist
+        end
+        table.insert(lines, line)
+    end
+    file:close()
+
+    -- Entferne die letzte Zeile
+    if #lines > 0 then
+        table.remove(lines, #lines)
+    else
+        print("Datei ist leer, keine Zeile zu löschen.")
+        return
+    end
+
+    -- Datei überschreiben ohne die letzte Zeile
+    file, err = io.open(filePathDelete, "w")
+    if not file then
+        print("Fehler beim Schreiben der Datei:", err)
+        return
+    end
+
+    for index, line in ipairs(lines) do
+        file:write(line) -- Schreibe die Zeile
+        if index < #lines then
+            file:write("\n") -- Füge nur zwischen den Zeilen einen Zeilenumbruch hinzu
+        end
+    end
+    file:close()
+    print("Letzte Zeile erfolgreich gelöscht.")
+end
+
 local function name(widget)
     locale = system.getLocale()
     -- Prüfen, ob locale unterstützt wird
@@ -573,6 +618,9 @@ local function wakeup(widget)
     local redSteigRate = nil
     local multipRedSteigRate = nil
     widget.valueReset = valueReset
+    -- if widget.valueWurfhoehe == nil then
+    --     widget.valueWurfhoehe = "200m"
+    -- end
 
     -- Überprüfen, ob sensorSteigrate gültig ist
     valueSteigrateString = sensorSteigrate and sensorSteigrate:stringValue() or nil
@@ -731,9 +779,96 @@ local function menu(widget)
          end},
          {menuL[locale],
          function()
-             widget.valueWurfhoehe = 0
-             valueReset = 1
-             start = 0
+            if widget.valueWurfhoehe ~= "0" and widget.valueWurfhoehe ~= 0 and widget.valueWurfhoehe ~= nil then 
+                local filePath = widget.modelName.."-startheight.txt"
+                local entries = {}
+
+                -- Datei öffnen
+                local file = io.open(filePath, "r")
+                if file then
+                    while true do
+                        local success, line = pcall(function() return file:read("L") end) -- Liest eine Zeile
+                        if not success or not line then
+                            break -- Beende die Schleife, wenn ein Fehler auftritt oder das Ende der Datei erreicht ist
+                        end
+                        line = string.gsub(line, "\r?\n", "") -- Entfernt Zeilenumbrüche
+                        if string.match(line, "%S") then -- Nur nicht-leere Zeilen hinzufügen
+                            table.insert(entries, line)
+                        end
+                    end
+                    file:close()
+                else
+                    print("Datei konnte nicht geöffnet werden:", filePath)
+                end
+
+                -- Debug-Ausgabe der Einträge
+                if #entries == 0 then
+                    print("Keine Daten vorhanden")
+                else
+                    for _, entry in ipairs(entries) do
+                        print(entry)
+                    end
+                end
+
+                -- Neuen Eintrag hinzufügen
+                local timestamp = os.date("%d.%m.%y %H:%M:%S")
+                if widget.valueWurfhoehe and widget.valueWurfhoehe ~= "" then
+                    local cleanedValue = string.gsub(widget.valueWurfhoehe, "m", "") -- Entfernt die Einheit "m"
+                    local valueWithoutUnit = tonumber(cleanedValue) -- Konvertiert den bereinigten String in eine Zahl
+                    if valueWithoutUnit then
+                        local newEntry = string.format("%s - %.2fm", timestamp, valueWithoutUnit)
+                        
+                        -- Überprüfen, ob der Eintrag leer ist
+                        if string.match(newEntry, "%S") then -- %S prüft, ob der String nicht nur aus Leerzeichen besteht
+                            table.insert(entries, newEntry)
+                        else
+                            print("Leerer Eintrag wird nicht hinzugefügt.")
+                        end
+                    else
+                        print("Ungültiger Wert für widget.valueWurfhoehe:", widget.valueWurfhoehe)
+                    end
+                else
+                    print("widget.valueWurfhoehe ist nil oder leer")
+                end
+                -- Nur die letzten 10 Einträge behalten
+                while #entries > 10 do
+                    table.remove(entries, 1)
+                end
+
+                -- Datei überschreiben
+                file = io.open(filePath, "w")
+                if file then
+                    for index, entry in ipairs(entries) do
+                        if string.match(entry, "%S") then -- Überprüfen, ob die Zeile nicht leer ist
+                            file:write(entry) -- Schreibe den Eintrag
+                            if index < #entries then
+                                file:write("\n") -- Füge nur zwischen den Einträgen einen Zeilenumbruch hinzu
+                            end
+                        end
+                    end
+                    file:close()
+                else
+                    print("Fehler beim Schreiben der Datei:", filePath)
+                end
+                widget.valueWurfhoehe = 0
+                valueReset = 1
+                start = 0
+                soundPlayed = 0
+            end
+         end},
+         {ignoreHeight[locale],
+         function()
+            widget.valueWurfhoehe = 0
+            valueReset = 1
+            start = 0
+            soundPlayed = 0
+         end},
+         {delLast[locale],
+         function()
+            filePathDelete = model.name().."-startheight.txt"
+            print("Datei löschen: " .. filePathDelete)
+            deleteLastLine(filePathDelete)
+
          end}
             
     }

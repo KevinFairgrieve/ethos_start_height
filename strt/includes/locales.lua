@@ -7,12 +7,20 @@ locales.hedline = {
 
 locales.waitForStart = {
     de = "Warte auf start",
-    en = "wait for Start"
+    en = "Wait for Start"
+}
+locales.ignoreHeight = {
+    de = "Hoehe ignorieren",
+    en = "ignore height"
+}
+locales.delLast = {
+    de = "Letzten Eintrag loeschen",
+    en = "delete last entry"
 }
 
 locales.menuL = {
-    de = "Starthoehe zuruecksetzen",
-    en = "reset Startheight"
+    de = "Hoehe speichern/zuruecksetzen",
+    en = "save/reset Height"
 }
 
 locales.configStgR = {
@@ -41,17 +49,17 @@ locales.configPlayValue = {
 
 locales.LastMenuL = {
     de = "Letzte Fluege anzeigen",
-    en = "open last flights"
+    en = "Open last flights"
 }
 
 locales.mainMenuL = {
     de = "Startseite",
-    en = "main page"
+    en = "Main page"
 }
 
 locales.headHistory = {
     de = "Letzte Starts",
-    en = "last starts"
+    en = "Last starts"
 }
 
 locales.headHistoryPath = {

@@ -1,3 +1,7 @@
+# 1.4.0
+- adds possibility to delete last entry
+- adds possibility to ignore the last detected height without saving
+
 # 1.3.0
 - adds possibility to let you play the value aftter height detection
 
